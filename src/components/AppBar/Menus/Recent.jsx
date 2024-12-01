@@ -30,8 +30,11 @@ function Recent() {
         aria-expanded={open ? 'true' : undefined}
         onClick={handleClick}
         endIcon={<ExpandMoreIcon/>}
+        sx={{
+          color:'white'
+        }}
       >
-        recent
+        Recent
       </Button>
       <Menu
         id="basic-menu-recent"
