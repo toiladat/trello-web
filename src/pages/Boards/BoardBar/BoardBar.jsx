@@ -10,7 +10,9 @@ import AvatarGroup from '@mui/material/AvatarGroup'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
-function BoardBar() {
+
+function BoardBar( props ) {
+  const { board }=props
   const MENU_STYLE = {
     color:'white',
     bgcolor:'transparent',
@@ -44,17 +46,21 @@ function BoardBar() {
       <Box sx={{ display:'flex', alignItems:'center', justifyContent:'center', gap:2 }}>
         <Chip
           sx={MENU_STYLE}
-          icon={<DashboardIcon/>} label="TienDatCode"
+          icon={<DashboardIcon/>} label={board?.title}
           clickable// or onclick
           onClick= {( ) => { }}
         />
+        {/* type !=null  */}
+        {board?.type &&
+          <Chip
+            sx={MENU_STYLE}
+            icon={<VpnLockIcon/>} label={board?.type}
+            clickable// or onclick
+            onClick= {( ) => { }}
 
-        <Chip
-          sx={MENU_STYLE}
-          icon={<VpnLockIcon/>} label="Public/Private Workspaces"
-          clickable// or onclick
-          onClick= {( ) => { }}
-        />
+          />
+        }
+
 
         <Chip
           sx={MENU_STYLE}
@@ -94,7 +100,7 @@ function BoardBar() {
         </Button>
 
         <AvatarGroup
-          max={1}
+          max={2}
           total={ 1 }
           sx={{
             gap:'10px',
