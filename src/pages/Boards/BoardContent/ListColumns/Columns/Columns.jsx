@@ -18,12 +18,30 @@ import AddCardIcon from '@mui/icons-material/AddCard'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 import ListCards from './ListCards/ListCards'
 
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
 import { mapOrder } from '~/utils/sorts'
 
 function Column({ column }) {
+  //drag and drop
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+    id: column._id,
+    data:{ ...column } // tra ve handelDragEnd o BoardContent
+  })
+
+  const dndKitColumStyles = {
+    // touchAction:'none', // không có touchAction ở mobile sẽ bị lỗi, do dnd-Kit conflict với trình duyện mobile
+    //                     // Dành cho sensor default dạng pointerSensor
+
+    //Nếu sử dụng CSS.Transform như docs thì sẽ lỗi kiểu stretch(co dãn chiều rộng các col khi kéo)
+    transform: CSS.Translate.toString(transform),
+    transition
+  }
+  // sort column
   const orderedCards= mapOrder(column?.cards, column?.cardOrderIds, '_id')
 
-
+  // dropdown menu
   const [anchorEl, setAncorEl] = React.useState(null)
   const open =Boolean(anchorEl)
 
@@ -44,6 +62,10 @@ function Column({ column }) {
         height:'fit-content', //fit theo content cua box,
         maxHeight:(theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`
       }}
+      ref={setNodeRef}
+      style={dndKitColumStyles}
+      {...attributes}
+      {...listeners}
     >
       {/* Box header */}
       <Box
