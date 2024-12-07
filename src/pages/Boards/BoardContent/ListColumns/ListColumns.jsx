@@ -9,6 +9,7 @@ function ListColumns({ columns }) {
   Nếu không đúng thì vẫn kéo thả được nhưng không có animation
   */
   return (
+    // vertical/horizontal là các hướng kéo col(horizon) card (vertical)
     <SortableContext items={ columns?.map(c => c._id) } strategy={horizontalListSortingStrategy}>
       <Box sx={{
         bgcolor:'inherit', //ke thua bg cha,

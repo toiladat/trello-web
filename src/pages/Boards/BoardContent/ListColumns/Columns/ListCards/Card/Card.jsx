@@ -8,17 +8,40 @@ import AttachmentIcon from '@mui/icons-material/Attachment'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
 function Card({ card }) {
+
+  //drag and drop
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({
+    id: card._id,
+    data:{ ...card } // tra ve handelDragEnd o BoardContent
+  })
+
+  const dndKitCardStyles = {
+    // touchAction:'none', // không có touchAction ở mobile sẽ bị lỗi, do dnd-Kit conflict với trình duyện mobile
+    //                     // Dành cho sensor default dạng pointerSensor
+
+    //Nếu sử dụng CSS.Transform như docs thì sẽ lỗi kiểu stretch(co dãn chiều rộng các col khi kéo)
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : undefined
+  }
+
   const shouldShowCardActions = () => {
     {/* !! lấy true nếu length >0 còn là false */}
     return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length
   }
   return (
-    <MuiCard sx={{
-      cursor:'pointer',
-      boxShadow:'0 1px 1px rgba(0,0,0,0.2)',
-      overflow:'unset'
-    }}>
+    <MuiCard
+      ref={setNodeRef} style={dndKitCardStyles} {...attributes} {...listeners}
+      sx={{
+        cursor:'pointer',
+        boxShadow:'0 1px 1px rgba(0,0,0,0.2)',
+        overflow:'unset'
+      }}
+    >
       {card?.cover&&
       <CardMedia
         sx={{ height: 140 }}
