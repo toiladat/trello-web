@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
 import { mapOrder } from '~/utils/sorts'
-import { DndContext, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects } from '@dnd-kit/core'
+import { DndContext, MouseSensor, TouchSensor, useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, closestCorners } from '@dnd-kit/core'
 import { useEffect, useState } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
 import Column from './ListColumns/Columns/Columns'
@@ -167,6 +167,9 @@ function BoardContent({ board }) {
   }
   return (
     <DndContext
+      // Thuật toán phát hiện va chạm (nếu không có thì card với cover lớn sẽ k kéo qua col khác được,
+      // vì lúc này nó đang bị conflict giữa card và column) chúng ta sẽ dùng closeetCornder thay vì closetCenter )
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handelDragEnd}
