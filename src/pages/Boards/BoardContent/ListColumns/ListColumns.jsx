@@ -29,7 +29,7 @@ function ListColumns({ columns }) {
         <Box sx={{
           minWidth:'200px',
           maxWidth:'200px',
-          mx:2,// left right,
+          mx:2 ,// left right,
           borderRadius:'6px',
           height:'fit-content',
           bgcolor:'#ffffff3d'
