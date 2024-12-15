@@ -33,6 +33,7 @@ function BoardContent({ board }) {
   const [activeDragItemId, setActiveDragItemId] = useState(null)
   const [activeDragItemType, setActiveDragItemType] = useState(null)
   const [activeDragItemData, setActiveDragItemData] = useState(null)
+  const [oldColumnWhenDraggingCard, setOldColumnWhenDraggingCard] = useState(null)
 
 
   useEffect(( ) => {
@@ -53,6 +54,10 @@ function BoardContent({ board }) {
     setActiveDragItemType(event?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_TYPE.CARD : ACTIVE_DRAG_ITEM_TYPE.COLUMN)
     setActiveDragItemData(event?.active?.data?.current)
 
+    // Nếu là kéo card thì mới thực hiện hành động set giá trị oldColumn
+    if ( event?.active?.data?.current?.columnId) {
+      setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id))
+    }
   }
 
   //Trigger dragOver( chỉ xử lý cards trong quá trình kéo )
@@ -128,36 +133,74 @@ function BoardContent({ board }) {
   // Trigger drop ( chỉ xử lý drag Columns)
   const handelDragEnd = (event) => {
     // console.log('handelDragEnd: ', event);
-
-    //Nếu là card thì xử lý ở dragOver
-    if (activeDragItemType===ACTIVE_DRAG_ITEM_TYPE.CARD) return
     const { active, over } = event
 
     // Ktra nếu không tồn tại over ( kéo lnh tinh ra ngoài thì return luôn tránh over == null)
     if (!active ||!over) return
 
-    // Nếu kéo -> thả vào đối tượng hợp lệ thì xử lý
-    if (active.id != over.id) {
-      // lay vi tri cu tu column keo
-      const oldIndex =orderedColumns.findIndex(c => c._id ===active.id )
+    // Xử lý kéo thả Cards
+    if (activeDragItemType===ACTIVE_DRAG_ITEM_TYPE.CARD) {
+      const { id: activeDraggingCardId, data:{ current:activeDraggingCardData } } = active
+      const { id: overDraggingCardId }= over
 
-      // lay vi tri moi tu column chon de tha
-      const newIndex =orderedColumns.findIndex(c => c._id ===over.id )
+      const activeColumn = findColumnByCardId(activeDraggingCardId)
+      const overColumn = findColumnByCardId(overDraggingCardId)
 
-      // arrayMove 1 fuction dnd-Kit dung sap xep mang theo yeu cau
-      //https://github.com/clauderic/dnd-kit/blob/master/packages/sortable/src/utilities/arrayMove.ts
-      const dndOrderedColumns = arrayMove(orderedColumns, oldIndex, newIndex)
+      if (!activeColumn || !overColumn) return
 
-      // luu csdl
-      // const dndOrderedColumnsIds=dndOrderedColumns.map( c => c._id)
+      // Dùng oldColumnWhenDraggingCard ( set từ handleDragStart ) vì sau khi onDragOver tới đây
+      // thì state setOrderedColumns đã bị cập nhật nên activeData không chuẩn nữa
+      if (oldColumnWhenDraggingCard._id !== overColumn._id) { // kéo card qua col khác
 
-      // cập nhật component
-      setOrderedColumns(dndOrderedColumns)
+      }
+      else { // kéo card trong col
+
+        const oldCardIndex = oldColumnWhenDraggingCard.cards.findIndex( c => c._id === activeDragItemId)
+        const newCardIndex = oldColumnWhenDraggingCard.cards.findIndex( c => c._id === overDraggingCardId)
+        const dndOrderedCards = arrayMove(oldColumnWhenDraggingCard?.cards, oldCardIndex, newCardIndex)
+
+
+        setOrderedColumns( prevColumns => {
+          const nextColumns = cloneDeep(prevColumns)
+          // Tìm Column mà đang tương tác
+          const targetColumns = nextColumns.find(c => c._id === oldColumnWhenDraggingCard._id)
+          // Cập nhật 2 giá trị là cards và cardOrderIds trong targetColumns
+          targetColumns.cards=dndOrderedCards
+          targetColumns.cardOrderIds= dndOrderedCards.map(card => card._id)
+
+          // trả về chuẩn vị trí
+          return nextColumns
+        })
+      }
     }
+
+    // Xử lý kéo thả columns
+    if (activeDragItemType===ACTIVE_DRAG_ITEM_TYPE.COLUMN) {
+      // Nếu kéo -> thả vào đối tượng hợp lệ thì xử lý
+      if (active.id != over.id) {
+        // lay vi tri cu tu column keo
+        const oldColumnIndex =orderedColumns.findIndex(c => c._id ===active.id )
+
+        // lay vi tri moi tu column chon de tha
+        const newColumnIndex =orderedColumns.findIndex(c => c._id ===over.id )
+
+        // arrayMove 1 fuction dnd-Kit dung sap xep mang theo yeu cau
+        //https://github.com/clauderic/dnd-kit/blob/master/packages/sortable/src/utilities/arrayMove.ts
+        const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex)
+
+        // luu csdl
+        // const dndOrderedColumnsIds=dndOrderedColumns.map( c => c._id)
+
+        // cập nhật component
+        setOrderedColumns(dndOrderedColumns)
+      }
+    }
+
 
     setActiveDragItemData(null)
     setActiveDragItemId(null)
     setActiveDragItemType(null)
+    setOldColumnWhenDraggingCard(null)
   }
   //Drop animation
   const customDropAnimation ={
