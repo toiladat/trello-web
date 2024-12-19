@@ -265,16 +265,19 @@ function BoardContent({ board }) {
       return closestCorners({ ...args })
     }
     // Tìm các điểm giao nhau - intersections với con trỏ
+    //Thuật toán phát hiện va chạm sẽ trả về 1 array mà element chạm tới
     const pointerIntersections = pointerWithin(args)
 
-    // Thuật toán phát hiện va chạm sẽ trả về 1 array mà element chạm tới
-    const intersections = !!pointerIntersections?.length
-      ? pointerIntersections
-      : rectIntersection(args)
+    if (!pointerIntersections?.length) return // nếu kéo ra invalid range
+
+    // // Thuật toán phát hiện va chạm sẽ trả về 1 array mà element chạm tới
+    // const intersections = !!pointerIntersections?.length
+    //   ? pointerIntersections
+    //   : rectIntersection(args)
 
     // tìm overId đầu tiên trong đám intersections
     // params id để lấy ra id cuối cùng va chạm
-    let overId = getFirstCollision(intersections, 'id')
+    let overId = getFirstCollision(pointerIntersections, 'id')
     // console.log(overId);
 
     if (overId) {
