@@ -18,7 +18,8 @@ import { useCallback, useEffect, useState, useRef } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
 import Column from './ListColumns/Columns/Columns'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
-import { cloneDeep, over } from 'lodash'
+import { cloneDeep, isEmpty } from 'lodash'
+import { generagePlaceholderCard } from '~/utils/formatters'
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN:'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
   CARD:'ACTIVE_DRAG_ITEM_TYPE_CARD'
@@ -97,13 +98,19 @@ function BoardContent({ board }) {
       if (nextActiveColumn) {
         // Xóa card ở column active (column cũ)
         nextActiveColumn.cards= nextActiveColumn.cards.filter(card => card._id !==activeDraggingCardId)
+
+        // Thêm placeholder-card nếu Column rỗng
+        if (isEmpty(nextActiveColumn.cards)) {
+          nextActiveColumn.cards =[generagePlaceholderCard(nextActiveColumn)]
+        }
+
         //Cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
         nextActiveColumn.cardOrderIds= nextActiveColumn.cards.map(card => card._id)
       }
       //Column mới
       if (nextOverColumn) {
-        //Kiểm tra xem card đang kéo đã tồn tại ở overColumn chưa nếu có thì cần xóa nó trước
-        nextOverColumn.cards= nextOverColumn.cards.filter(card => card._id !==activeDraggingCardId)
+        //Kiểm tra xem card đang kéo đã tồn tại ở overColumn chưa nếu có thì cần xóa nó trước 
+        nextOverColumn.cards= nextOverColumn.cards.filter(card => (card._id !==activeDraggingCardId))
 
         //Tiếp theo là thêm card đang kéo vào overColumn theo index mới
         nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex,
@@ -112,10 +119,16 @@ function BoardContent({ board }) {
             ...activeDraggingCardData,
             columnId: nextOverColumn._id
           })
+
+        // xóa card?.FE_PlaceholderCard
+        nextOverColumn.cards= nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
+
         //Cập nhật lại mảng cardOrderIds cho chuẩn dữ liệu
         nextOverColumn.cardOrderIds= nextOverColumn.cards.map(card => card._id)
 
       }
+      console.log(nextColumns);
+
       return nextColumns
     })
   }
@@ -283,10 +296,10 @@ function BoardContent({ board }) {
     if (overId) {
       //nếu kéo gần 1 col sẽ tìm cardId gần nhất trong khu vực đang va chạm
       // dựa vào thuật toán closestCenter or closestCorrners => overId phải là card nếu là col sẽ bug
-      // dùng center mượt hơn
+      // dùng closestCorners mượt hơn
       const checkColumn = orderedColumns.find( column => column._id === overId)
       if (checkColumn) { // nếu va chạm với col thì tìm card gần nhất để thế vào
-        overId=closestCenter({
+        overId=closestCorners({
           ...args,
           droppableContainers: args.droppableContainers.filter(container => // đoạn này chịu
             container.id !== overId &&
